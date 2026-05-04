@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#faf7f0"/>
+  <title>Dashboard KM — Renata & Gian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #D4537E;
+      --pink-dark: #993556;
+      --pink-light: #FBEAF0;
+      --blue: #378ADD;
+      --blue-dark: #185FA5;
+      --blue-light: #E6F1FB;
+      --amber: #BA7517;
+      --green: #1D9E75;
+      --green-dark: #0F6E56;
+      --green-light: #E1F5EE;
+      --ink: #1a1208;
+      --ink2: #5c4a2a;
+      --ink3: #9c8060;
+      --paper: #faf7f0;
+      --paper2: #f0ead8;
+      --paper3: #e8dfc8;
+      --border: rgba(90,60,20,0.15);
+      --border2: rgba(90,60,20,0.28);
+      --radius: 10px;
+      --radius-lg: 16px;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper2);
+      color: var(--ink);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.125rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.875rem;
+    }
+    .header-title {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+    }
+    .header-sub { font-size: 13px; color: var(--ink3); margin-top: 3px; }
+    .header-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .badge { padding: 4px 13px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-pink { background: var(--pink-light); color: var(--pink-dark); }
+    .badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+
+    /* ── CSV buttons ── */
+    .btn-csv {
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-csv:active { transform: scale(0.97); }
+    .btn-export {
+      background: var(--green-light);
+      color: var(--green-dark);
+      border: 1.5px solid var(--green);
+    }
+    .btn-export:hover { background: #c5eddf; }
+    .btn-import {
+      background: var(--blue-light);
+      color: var(--blue-dark);
+      border: 1.5px solid var(--blue);
+    }
+    .btn-import:hover { background: #cce0f8; }
+    #inp-csv { display: none; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink3);
+      margin-bottom: 0.875rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .field label {
+      font-size: 12px;
+      color: var(--ink3);
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 9px 11px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      background: var(--paper);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+      min-height: 40px;
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px rgba(212,83,126,0.12);
+    }
+    .btn-add {
+      padding: 9px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--pink);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      white-space: nowrap;
+      min-height: 40px;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-add:active { background: var(--pink-dark); transform: scale(0.97); }
+
+    .err-msg {
+      font-size: 12px;
+      color: #A32D2D;
+      background: #FCEBEB;
+      padding: 7px 11px;
+      border-radius: var(--radius);
+      margin-top: 10px;
+      display: none;
+      border-left: 2px solid #E24B4A;
+    }
+    .ok-msg {
+      font-size: 12px;
+      color: var(--green-dark);
+      background: var(--green-light);
+      padding: 7px 11px;
+      border-radius: var(--radius);
+      margin-top: 10px;
+      display: none;
+      border-left: 2px solid var(--green);
+    }
+    .csv-hint {
+      font-size: 11px;
+      color: var(--ink3);
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: var(--paper2);
+      border-radius: var(--radius);
+    }
+    .csv-hint code {
+      font-family: monospace;
+      background: var(--paper3);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* ── Filters ── */
+    .filters { display: flex; gap: 8px; margin-bottom: 1.125rem; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      border: 1.5px solid var(--border2);
+      border-radius: var(--radius);
+      background: var(--paper);
+      color: var(--ink2);
+      cursor: pointer;
+      transition: all 0.15s;
+      min-height: 38px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .filter-btn:active { transform: scale(0.97); }
+    .filter-btn.active-ambos  { background: var(--ink2); color: white; border-color: var(--ink2); }
+    .filter-btn.active-renata { background: var(--pink); color: white; border-color: var(--pink); }
+    .filter-btn.active-gian   { background: var(--blue); color: white; border-color: var(--blue); }
+
+    /* ── Metrics ── */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.125rem;
+    }
+    .mc {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0.875rem 1rem;
+    }
+    .mc-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink3);
+      margin-bottom: 5px;
+    }
+    .mc-val { font-size: 22px; font-weight: 600; color: var(--ink); }
+    .mc-val.pink  { color: var(--pink-dark); }
+    .mc-val.blue  { color: var(--blue-dark); }
+    .mc-val.amber { color: var(--amber); }
+
+    /* ── Section cards ── */
+    .section {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.125rem 1.25rem;
+      margin-bottom: 0.875rem;
+    }
+    .sec-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.875rem;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sec-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink3);
+    }
+    .legend { display: flex; gap: 12px; font-size: 12px; color: var(--ink3); flex-wrap: wrap; }
+    .legend span { display: flex; align-items: center; gap: 4px; }
+    .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+    .chart-wrap { position: relative; width: 100%; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; margin-top: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink3);
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); color: var(--ink); }
+    tr:last-child td { border-bottom: none; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .dot-renata { background: var(--pink); }
+    .dot-gian   { background: var(--blue); }
+    .btn-del {
+      background: none;
+      border: none;
+      color: var(--ink3);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-del:hover { color: #A32D2D; background: #FCEBEB; }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      font-size: 14px;
+      color: var(--ink3);
+    }
+    .empty-state strong { display: block; font-size: 16px; margin-bottom: 6px; color: var(--ink2); }
+
+    .mc-destaque { background: var(--pink-light); border: 1px solid rgba(212,83,126,0.2); border-radius: var(--radius-lg); padding: 0.875rem 1rem; }
+    .mc-destaque-green { background: var(--green-light); border: 1px solid rgba(29,158,117,0.2); border-radius: var(--radius-lg); padding: 0.875rem 1rem; }
+    .mc-val.green { color: var(--green-dark); }
+
+    /* ── Taxa ── */
+    .taxa-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--paper); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.625rem 1rem;
+      margin-bottom: 1.125rem; flex-wrap: wrap;
+    }
+    .taxa-bar label { font-size: 13px; color: var(--ink3); font-weight: 500; white-space: nowrap; }
+    .taxa-bar input {
+      width: 90px; padding: 6px 10px; font-size: 14px;
+      font-family: 'DM Sans', sans-serif; border: 1px solid var(--border2);
+      border-radius: var(--radius); background: var(--paper); color: var(--ink);
+      outline: none; -webkit-appearance: none;
+    }
+    .taxa-bar input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+    .taxa-bar .taxa-hint { font-size: 12px; color: var(--ink3); }
+
+    /* ── Tabela semanal ── */
+    .sem-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    .sem-table th {
+      text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink3);
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .sem-table td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); color: var(--ink); white-space: nowrap; }
+    .sem-table tr:last-child td { border-bottom: none; }
+    .sem-table tr.total-row td { font-weight: 600; background: var(--paper2); }
+    .val-pink  { color: var(--pink-dark);  font-weight: 500; }
+    .val-blue  { color: var(--blue-dark);  font-weight: 500; }
+    .val-green { color: var(--green-dark); font-weight: 500; }
+
+    /* ── Footer ── */
+    .footer { text-align: center; margin-top: 2rem; font-size: 12px; color: var(--ink3); }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr 1fr; }
+      .btn-add { grid-column: span 2; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .header-title { font-size: 20px; }
+    }
+    @media (min-width: 641px) {
+      .form-row { grid-template-columns: 1fr 1fr 1fr 1fr auto; }
+    }
+    @media (max-width: 380px) {
+      .form-row { grid-template-columns: 1fr; }
+      .btn-add { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <div class="header-title">🚗 KM Rodados — Entregas</div>
+      <div class="header-sub">Renata & Gian · dados salvos localmente</div>
+    </div>
+    <div class="header-right">
+      <span class="badge badge-pink">Renata</span>
+      <span class="badge badge-blue">Gian</span>
+      <button class="btn-csv btn-import" onclick="document.getElementById('inp-csv').click()">⬆ Importar CSV</button>
+      <button class="btn-csv btn-export" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <input type="file" id="inp-csv" accept=".csv" onchange="importarCSV(this)"/>
+    </div>
+  </div>
+
+  <!-- Formulário -->
+  <div class="form-card">
+    <div class="form-title">Adicionar registro</div>
+    <div class="form-row">
+      <div class="field">
+        <label>Data</label>
+        <input type="date" id="inp-data"/>
+      </div>
+      <div class="field">
+        <label>Entregador</label>
+        <select id="inp-ent">
+          <option value="">Selecione...</option>
+          <option value="renata">Renata</option>
+          <option value="gian">Gian</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>KM rodados</label>
+        <input type="number" id="inp-km" placeholder="ex: 128.4" step="0.1" min="0" oninput="calcValorPreview()"/>
+      </div>
+      <div class="field">
+        <label>Taxa R$/km</label>
+        <input type="number" id="inp-taxa" placeholder="1.50" step="0.01" min="0.01" oninput="calcValorPreview()"/>
+      </div>
+      <button class="btn-add" onclick="addRegistro()">+ Adicionar</button>
+    </div>
+    <div id="valor-preview" style="display:none;margin-top:8px;padding:8px 12px;background:var(--green-light);border-left:2px solid var(--green);border-radius:var(--radius);font-size:13px;color:var(--green-dark);">
+      Valor do dia: <strong id="valor-preview-num"></strong>
+    </div>
+    <div class="err-msg" id="err-msg">Preencha todos os campos corretamente.</div>
+    <div class="ok-msg" id="ok-msg"></div>
+    <div class="csv-hint">
+      Formato do CSV para importar: <code>data,entregador,km</code> &nbsp;—&nbsp; ex: <code>2025-04-13,renata,128.4</code>
+    </div>
+  </div>
+
+
+  <!-- Filtros -->
+  <div class="filters">
+    <button class="filter-btn active-ambos" onclick="setFiltro('ambos',this,'active-ambos')">Ambos</button>
+    <button class="filter-btn" onclick="setFiltro('renata',this,'active-renata')">Renata</button>
+    <button class="filter-btn" onclick="setFiltro('gian',this,'active-gian')">Gian</button>
+  </div>
+
+  <!-- Métricas -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;flex-wrap:wrap;gap:8px;">
+    <span style="font-size:12px;color:var(--ink3);" id="metric-hint">Exibindo em KM · clique para ver em R$</span>
+    <button id="btn-toggle-metric" onclick="toggleMetric()" style="padding:5px 14px;font-size:13px;font-weight:500;font-family:inherit;border:1.5px solid var(--green);border-radius:var(--radius);background:var(--green-light);color:var(--green-dark);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;">Ver em R$</button>
+  </div>
+  <div class="metrics" id="metrics"></div>
+
+  <!-- Gráfico por dia -->
+  <div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title">KM por dia</div>
+      <div class="legend">
+        <span><i style="background:#D4537E;"></i>Renata</span>
+        <span><i style="background:#378ADD;"></i>Gian</span>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:260px;">
+      <canvas id="chart-dia" role="img" aria-label="KM rodados por dia">Nenhum dado ainda.</canvas>
+    </div>
+  </div>
+
+  <!-- Gráfico total -->
+  <div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title">Total acumulado por entregador</div>
+    </div>
+    <div class="chart-wrap" style="height:160px;">
+      <canvas id="chart-total" role="img" aria-label="Total acumulado por entregador">Nenhum dado ainda.</canvas>
+    </div>
+  </div>
+
+  <!-- Tabela colapsável -->
+  <div class="section" style="padding:0;">
+    <button onclick="toggleHistorico()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:none;border:none;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink3);">Histórico de registros</span>
+      <span id="hist-icon" style="font-size:18px;color:var(--ink3);transition:transform 0.2s;">▾</span>
+    </button>
+    <div id="hist-body" style="display:none;padding:0 1.25rem 1.25rem;">
+      <div class="table-wrap" id="tabela-wrap"></div>
+    </div>
+  </div>
+
+  <!-- Resumo semanal -->
+  <div class="section">
+    <div class="sec-hdr" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:8px;">
+        <div class="sec-title" id="sem-title">KM por semana</div>
+        <div style="display:flex;gap:6px;">
+          <button class="filter-btn active-ambos" id="tab-km"    onclick="setSemTab('km',this)"   style="min-height:30px;padding:3px 12px;font-size:12px;">KM</button>
+          <button class="filter-btn"              id="tab-valor" onclick="setSemTab('valor',this)" style="min-height:30px;padding:3px 12px;font-size:12px;">Valor R$</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="filter-btn active-ambos" id="sem-f-ambos"  onclick="setSemFiltro('ambos',this)"  style="min-height:30px;padding:3px 14px;font-size:12px;">Ambos</button>
+        <button class="filter-btn"              id="sem-f-renata" onclick="setSemFiltro('renata',this)" style="min-height:30px;padding:3px 14px;font-size:12px;">Renata</button>
+        <button class="filter-btn"              id="sem-f-gian"   onclick="setSemFiltro('gian',this)"   style="min-height:30px;padding:3px 14px;font-size:12px;">Gian</button>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:320px;">
+      <canvas id="chart-sem" role="img" aria-label="KM por semana">Nenhum dado ainda.</canvas>
+    </div>
+  </div>
+
+
+  <div class="footer">Dados salvos localmente no navegador · Renata & Gian © 2025</div>
+
+</div>
+<script>
+  let registros = JSON.parse(localStorage.getItem('km_registros') || '[]');
+  let taxa = parseFloat(localStorage.getItem('km_taxa') || '1.50');
+  let filtro = 'ambos';
+  let charts = {};
+
+  const pink = '#D4537E', blue = '#378ADD';
+  const textColor = '#9c8060', gridColor = 'rgba(90,60,20,0.08)';
+
+  function fmt(v) { return v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function fmtR(v) { return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function fmtData(d) { return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); }
+  function salvar() { localStorage.setItem('km_registros', JSON.stringify(registros)); }
+
+  function salvarTaxa() {
+    const v = parseFloat(document.getElementById('inp-taxa').value);
+    if (!isNaN(v) && v > 0) {
+      taxa = v;
+      localStorage.setItem('km_taxa', taxa);
+      renderSemana();
+    }
+  }
+
+  function calcValorPreview() {
+    const km = parseFloat(document.getElementById('inp-km').value);
+    const t  = parseFloat(document.getElementById('inp-taxa').value);
+    const preview = document.getElementById('valor-preview');
+    const num     = document.getElementById('valor-preview-num');
+    if (!isNaN(km) && km > 0 && !isNaN(t) && t > 0) {
+      num.textContent = fmtR(km * t);
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  function semanaISO(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    const dow = d.getDay(); // 0=Dom, 6=Sab
+    const dom = new Date(d);
+    dom.setDate(d.getDate() - dow); // recua até domingo
+    const ano = dom.getFullYear();
+    const jan1 = new Date(ano, 0, 1);
+    const firstDow = jan1.getDay();
+    const firstDom = new Date(jan1);
+    firstDom.setDate(jan1.getDate() - firstDow);
+    const sem = Math.floor((dom - firstDom) / (7 * 86400000)) + 1;
+    return ano + '-S' + String(sem).padStart(2, '0');
+  }
+
+  function labelSemana(chave) {
+    const [ano, s] = chave.split('-S');
+    const sem = parseInt(s);
+    const jan1 = new Date(parseInt(ano), 0, 1);
+    const firstDow = jan1.getDay();
+    const firstDom = new Date(jan1);
+    firstDom.setDate(jan1.getDate() - firstDow);
+    const dom = new Date(firstDom);
+    dom.setDate(firstDom.getDate() + (sem - 1) * 7);
+    const sab = new Date(dom);
+    sab.setDate(dom.getDate() + 6);
+    const f = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+    return f(dom) + '\n' + f(sab);
+  }
+
+  let semTab = 'km';
+  let semFiltro = 'ambos';
+
+  function setSemFiltro(f, btn) {
+    semFiltro = f;
+    ['sem-f-ambos','sem-f-renata','sem-f-gian'].forEach(id => {
+      document.getElementById(id).className = 'filter-btn';
+    });
+    const cls = f === 'renata' ? 'active-renata' : f === 'gian' ? 'active-gian' : 'active-ambos';
+    btn.classList.add(cls);
+    renderSemana();
+  }
+
+  function setSemTab(t, btn) {
+    semTab = t;
+    document.getElementById('tab-km').className    = 'filter-btn' + (t === 'km'    ? ' active-ambos' : '');
+    document.getElementById('tab-valor').className = 'filter-btn' + (t === 'valor' ? ' active-ambos' : '');
+    document.getElementById('sem-title').textContent = t === 'km' ? 'KM por semana' : 'Valor por semana (R$)';
+    renderSemana();
+  }
+
+  function renderSemana() {
+    if (charts.sem) charts.sem.destroy();
+
+    const mapa = {};
+    registros.forEach(r => {
+      const chave = semanaISO(r.data);
+      if (!mapa[chave]) mapa[chave] = { renata: 0, gian: 0 };
+      mapa[chave][r.ent] += r.km;
+    });
+    const chaves = Object.keys(mapa).sort();
+
+    const getFiltered_r = () => semFiltro === 'gian'   ? [] : chaves.map(k => semTab === 'km' ? mapa[k].renata : parseFloat((mapa[k].renata * taxa).toFixed(2)));
+    const getFiltered_g = () => semFiltro === 'renata' ? [] : chaves.map(k => semTab === 'km' ? mapa[k].gian   : parseFloat((mapa[k].gian   * taxa).toFixed(2)));
+
+    const labels = chaves.map(k => labelSemana(k));
+    const dsR = getFiltered_r();
+    const dsG = getFiltered_g();
+    const yFmt = semTab === 'km' ? v => v + ' km' : v => 'R$ ' + v.toLocaleString('pt-BR');
+
+    const datasets = [];
+    if (semFiltro !== 'gian')   datasets.push({ label:'Renata', data:dsR, backgroundColor:pink+'99', borderColor:pink, borderWidth:1.5, borderRadius:4 });
+    if (semFiltro !== 'renata') datasets.push({ label:'Gian',   data:dsG, backgroundColor:blue+'99', borderColor:blue, borderWidth:1.5, borderRadius:4 });
+
+    charts.sem = new Chart(document.getElementById('chart-sem'), {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: {
+              color: textColor,
+              font: { size: 9 },
+              maxRotation: 45,
+              minRotation: 45,
+              autoSkip: false,
+              callback: function(val, i) {
+                const label = this.getLabelForValue(val);
+                return label ? label.split('\n') : '';
+              }
+            },
+            grid: { color: gridColor }
+          },
+          y: { ticks: { color: textColor, font: { size: 11 }, callback: yFmt }, grid: { color: gridColor }, beginAtZero: true }
+        },
+        layout: { padding: { bottom: 4 } }
+      }
+    });
+  }
+
+  function showMsg(id, msg, dur = 2500) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', dur);
+  }
+
+  function addRegistro() {
+    const data = document.getElementById('inp-data').value;
+    const ent  = document.getElementById('inp-ent').value;
+    const km   = parseFloat(document.getElementById('inp-km').value);
+    const t    = parseFloat(document.getElementById('inp-taxa').value);
+    if (!data || !ent || isNaN(km) || km <= 0 || isNaN(t) || t <= 0) {
+      document.getElementById('err-msg').style.display = 'block';
+      return;
+    }
+    document.getElementById('err-msg').style.display = 'none';
+    taxa = t;
+    localStorage.setItem('km_taxa', taxa);
+    registros.push({ data, ent, km });
+    registros.sort((a, b) => a.data.localeCompare(b.data));
+    salvar();
+    document.getElementById('inp-km').value = '';
+    document.getElementById('valor-preview').style.display = 'none';
+    showMsg('ok-msg', '✓ Registro adicionado! Valor: ' + fmtR(km * taxa));
+    atualizar();
+  }
+
+  function delRegistro(i) {
+    if (!confirm('Remover este registro?')) return;
+    registros.splice(i, 1);
+    salvar();
+    atualizar();
+  }
+
+  /* ── EXPORTAR CSV ── */
+  function exportarCSV() {
+    if (!registros.length) { alert('Nenhum dado para exportar.'); return; }
+    const header = 'data,entregador,km\n';
+    const rows = registros.map(r => `${r.data},${r.ent},${r.km}`).join('\n');
+    const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'km_entregas_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* ── IMPORTAR CSV ── */
+  function importarCSV(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const lines = e.target.result.trim().split('\n');
+      let importados = 0, erros = 0;
+      lines.forEach((line, i) => {
+        if (i === 0 && line.toLowerCase().includes('data')) return;
+        const parts = line.split(',');
+        if (parts.length < 3) return;
+        const data = parts[0].trim();
+        const ent  = parts[1].trim().toLowerCase();
+        const km   = parseFloat(parts[2].trim());
+        if (!data || !['renata', 'gian'].includes(ent) || isNaN(km) || km <= 0) { erros++; return; }
+        const existe = registros.find(r => r.data === data && r.ent === ent);
+        if (!existe) { registros.push({ data, ent, km }); importados++; }
+      });
+      registros.sort((a, b) => a.data.localeCompare(b.data));
+      salvar();
+      atualizar();
+      showMsg('ok-msg', `✓ ${importados} registro(s) importado(s)${erros ? ` · ${erros} linha(s) ignorada(s)` : ''}`, 3500);
+      input.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function getFiltered() {
+    if (filtro === 'renata') return registros.filter(r => r.ent === 'renata');
+    if (filtro === 'gian')   return registros.filter(r => r.ent === 'gian');
+    return registros;
+  }
+
+  function calcMetrics() {
+    const r  = registros.filter(x => x.ent === 'renata');
+    const g  = registros.filter(x => x.ent === 'gian');
+    const kR = r.reduce((a, x) => a + x.km, 0);
+    const kG = g.reduce((a, x) => a + x.km, 0);
+    if (filtro === 'renata') return { km: kR, val: kR * taxa, dias: r.length, media: r.length ? kR / r.length : 0, cor: 'pink' };
+    if (filtro === 'gian')   return { km: kG, val: kG * taxa, dias: g.length, media: g.length ? kG / g.length : 0, cor: 'blue' };
+    const total = kR + kG;
+    return { km: total, val: total * taxa, kmR: kR, kmG: kG, valR: kR * taxa, valG: kG * taxa, dias: '—', media: registros.length ? total / registros.length : 0, cor: 'amber' };
+  }
+
+  let modoMetric = 'km';
+
+  function toggleMetric() {
+    modoMetric = modoMetric === 'km' ? 'valor' : 'km';
+    const hint = document.getElementById('metric-hint');
+    if (hint) hint.textContent = modoMetric === 'km' ? 'Exibindo em KM · clique para ver em R$' : 'Exibindo em R$ · clique para ver em KM';
+    renderMetrics();
+  }
+
+  function renderMetrics() {
+    const m = calcMetrics();
+    const isValor = modoMetric === 'valor';
+    const btnLabel = isValor ? 'Ver em KM' : 'Ver em R$';
+
+    let cards = '';
+    if (filtro === 'ambos' && isValor) {
+      cards = `
+        <div class="mc mc-destaque"><div class="mc-label">Renata ganhou</div><div class="mc-val pink">${fmtR(m.valR)}</div></div>
+        <div class="mc mc-destaque"><div class="mc-label">Gian ganhou</div><div class="mc-val blue">${fmtR(m.valG)}</div></div>
+        <div class="mc mc-destaque-green"><div class="mc-label">Total recebido</div><div class="mc-val green">${fmtR(m.val)}</div></div>
+        <div class="mc"><div class="mc-label">Média/dia</div><div class="mc-val amber">${fmtR(m.media * taxa)}</div></div>
+      `;
+    } else if (filtro !== 'ambos' && isValor) {
+      cards = `
+        <div class="mc mc-destaque-green" style="grid-column:span 2"><div class="mc-label">${filtro === 'renata' ? 'Renata' : 'Gian'} ganhou</div><div class="mc-val ${m.cor === 'pink' ? 'green' : 'green'}">${fmtR(m.val)}</div></div>
+        <div class="mc"><div class="mc-label">Dias rodados</div><div class="mc-val">${m.dias}</div></div>
+        <div class="mc"><div class="mc-label">Média/dia</div><div class="mc-val amber">${fmtR(m.media * taxa)}</div></div>
+      `;
+    } else if (filtro === 'ambos') {
+      cards = `
+        <div class="mc"><div class="mc-label">Total KM</div><div class="mc-val ${m.cor}">${fmt(m.km)} km</div></div>
+        <div class="mc"><div class="mc-label">Renata</div><div class="mc-val pink">${fmt(m.kmR)} km</div></div>
+        <div class="mc"><div class="mc-label">Gian</div><div class="mc-val blue">${fmt(m.kmG)} km</div></div>
+        <div class="mc"><div class="mc-label">Média/dia</div><div class="mc-val amber">${fmt(m.media)} km</div></div>
+      `;
+    } else {
+      cards = `
+        <div class="mc"><div class="mc-label">Total KM</div><div class="mc-val ${m.cor}">${fmt(m.km)} km</div></div>
+        <div class="mc"><div class="mc-label">Registros</div><div class="mc-val">${m.dias}</div></div>
+        <div class="mc"><div class="mc-label">Média/dia</div><div class="mc-val amber">${fmt(m.media)} km</div></div>
+        <div class="mc"><div class="mc-label">Entregadores</div><div class="mc-val">${[...new Set(registros.map(r => r.ent))].length}</div></div>
+      `;
+    }
+
+    document.getElementById('metrics').innerHTML = cards;
+    document.getElementById('btn-toggle-metric').textContent = btnLabel;
+  }
+
+  function makeCharts() {
+    if (charts.dia)   charts.dia.destroy();
+    if (charts.total) charts.total.destroy();
+
+    const filtered = getFiltered();
+    const dias = [...new Set(filtered.map(r => r.data))].sort();
+    const labels = dias.map(fmtData);
+    const dsR = dias.map(d => { const r = filtered.find(x => x.data === d && x.ent === 'renata'); return r ? r.km : 0; });
+    const dsG = dias.map(d => { const r = filtered.find(x => x.data === d && x.ent === 'gian');   return r ? r.km : 0; });
+
+    let datasets = [];
+    if (filtro === 'renata' || filtro === 'ambos') datasets.push({ label: 'Renata', data: dsR, backgroundColor: pink + '99', borderColor: pink, borderWidth: 1.5 });
+    if (filtro === 'gian'   || filtro === 'ambos') datasets.push({ label: 'Gian',   data: dsG, backgroundColor: blue + '99', borderColor: blue, borderWidth: 1.5 });
+
+    charts.dia = new Chart(document.getElementById('chart-dia'), {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: textColor, font: { size: 11 }, maxRotation: 45, autoSkip: true }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' km' }, grid: { color: gridColor }, beginAtZero: true }
+        }
+      }
+    });
+
+    const kR = registros.filter(x => x.ent === 'renata').reduce((a, x) => a + x.km, 0);
+    const kG = registros.filter(x => x.ent === 'gian').reduce((a, x) => a + x.km, 0);
+
+    charts.total = new Chart(document.getElementById('chart-total'), {
+      type: 'bar',
+      data: {
+        labels: ['Renata', 'Gian'],
+        datasets: [{ data: [kR, kG], backgroundColor: [pink + '99', blue + '99'], borderColor: [pink, blue], borderWidth: 1.5, borderRadius: 6 }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' km' }, grid: { color: gridColor }, beginAtZero: true },
+          y: { ticks: { color: textColor, font: { size: 13 } }, grid: { color: 'transparent' } }
+        }
+      }
+    });
+  }
+
+  function renderTabela() {
+    const wrap = document.getElementById('tabela-wrap');
+    if (!registros.length) {
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <strong>Nenhum registro ainda</strong>
+          Adicione manualmente ou importe um CSV.
+        </div>`;
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead><tr><th>Data</th><th>Entregador</th><th>KM</th><th></th></tr></thead>
+        <tbody>
+          ${[...registros].reverse().map((r, i) => `
+            <tr>
+              <td>${fmtData(r.data)}</td>
+              <td><span class="dot dot-${r.ent}"></span>${r.ent === 'renata' ? 'Renata' : 'Gian'}</td>
+              <td>${fmt(r.km)} km</td>
+              <td><button class="btn-del" onclick="delRegistro(${registros.length - 1 - i})">Remover</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function setFiltro(f, btn, cls) {
+    filtro = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    btn.classList.add(cls);
+    atualizar();
+  }
+
+  function toggleHistorico() {
+    const body = document.getElementById('hist-body');
+    const icon = document.getElementById('hist-icon');
+    const aberto = body.style.display !== 'none';
+    body.style.display = aberto ? 'none' : 'block';
+    icon.style.transform = aberto ? '' : 'rotate(180deg)';
+  }
+
+  function atualizar() { renderMetrics(); makeCharts(); renderTabela(); renderSemana(); }
+
+  document.getElementById('inp-data').valueAsDate = new Date();
+  document.getElementById('inp-taxa').value = taxa.toFixed(2);
+  atualizar();
+</script>
+</body>
+</html>
